@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <style>
+        .mapstyle {
+            width: 700px;
+            height: 500px;
+            float: left;
+        }
+
+        .directionstyle {
+            width: 400px;
+            height: 800px;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map" class="mapstyle"></div>
+    <div id="direction" class="directionstyle">
+        <table id="mytable" class="table table-bordered">
+            <tr>
+                <th class="Textmid">移動方式</th>
+                <th class="Textmid">總金額(NTW)</th>
+                <th class="Textmid">高速公路過路費(NTW)</th>
+                <th class="Textmid">路徑長(km)</th>
+                <th class="Textmid">時間(分)</th>
+            </tr>
+        </table>
+    </div>
+
+    <script type="text/javascript">
+        var map;
+        var marker = null;
+        var center = { lat: 24.7571075, lng: 120.952429 };
+        var point1 = null, point2 = null;
+        var directionsService = null;
+        var directionsDisplay = null;
+        var table = document.querySelector("table");
+
+        window.onload = function () {
+
+            map = new google.maps.Map(
+                document.getElementById('map'), {
+                    center: center,
+                    zoom: 15
+                });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsDisplay = new google.maps.DirectionsRenderer();
+            directionsDisplay.setMap(map);
+            //directionsDisplay.setPanel(document.getElementById('direction'));
+
+            map.addListener("click", function (e) {
+
+                if (point1 != null && point2 != null) {
+                    point1 = null;
+                    point2 = null;
+                }
+
+                if (point1 == null) {
+                    point1 = e.latLng.lat() + ',' + e.latLng.lng();
+                    return;
+                }
+                if (point2 == null) {
+                    point2 = e.latLng.lat() + ',' + e.latLng.lng();
+                }
+
+                console.log(point1);
+                console.log(point2);
+
+                if (point1 != null && point2 != null) {
+
+                    var travelMode = 'TRANSIT';
+                    CaculateDirectionTRANSIT2(point1, point2, travelMode);
+                    var travelMode = 'DRIVING';
+                    CaculateDirectionCar(point1, point2, travelMode);
+                    var travelMode = 'DRIVING';
+                    CaculateDirectionTaxi(point1, point2, travelMode);
+
+                }
+            });
+        }
+
+
+
+
+        var CaculateDirectionTRANSIT2 = function (point1, point2, travelMode) {
+            directionsService.route({
+                origin: point1,
+                destination: point2,
+                travelMode: travelMode
+            }, function (response, status) {
+                if (status === 'OK') {
+                    console.log(response);
+                    var row = document.createElement("tr");
+                    var cell = document.createElement("td");
+                    cell.innerText = '搭乘交通工具';
+                    row.appendChild(cell);
+                    console.log('搭乘交通工具', response);
+
+                    var TotalDistance = 0;
+                    var TotalTimes = 0;
+                    var items = response.routes[0].legs[0].steps;
+                    items.forEach(item => {
+                        TotalDistance += item.distance.value;
+                        TotalTimes += item.duration.value;
+                    });
+
+
+
+                    var cell = document.createElement("td");
+                    cell.innerText = (response.routes[0].fare.value).toFixed(2) + "元";
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = 'x';
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = (TotalDistance / 1000).toFixed(2);
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = (TotalTimes / 60).toFixed(2) + "分";
+                    row.appendChild(cell);
+
+                    table.appendChild(row);
+                    directionsDisplay.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+
+        var CaculateDirectionTaxi = function (point1, point2, travelMode) {
+            directionsService.route({
+                origin: point1,
+                destination: point2,
+                travelMode: travelMode
+            }, function (response, status) {
+                if (status === 'OK') {
+                    console.log(response);
+                    var row = document.createElement("tr");
+                    var cell = document.createElement("td");
+                    cell.innerText = '搭小黃';
+                    row.appendChild(cell);
+                    var steps = response.routes[0].legs[0].steps;
+                    var NormalRoad = 0;
+                    var HighWay = 0;
+                    var TotalTimes = 0;
+                    steps.forEach(item => {
+                        var string1 = item.instructions;
+                        if (string1.indexOf('收費路段') != -1) {
+                            //console.log(item.instructions);
+                            HighWay += item.distance.value;
+                        }
+                        else {
+                            NormalRoad += item.distance.value;
+                        }
+                        TotalTimes += item.duration.value;
+                    });
+                    var TotalPrice = 0;  //Math.ceil(a); 無條件進位
+                    if (HighWay + NormalRoad >= 1500) {
+                        var total = HighWay + NormalRoad;
+                        var big = total - 1500;
+                        TotalPrice += Math.ceil(big / 250) * 5;
+                        TotalPrice += 85;
+                        TotalPrice += Math.ceil(HighWay / 1000) * 1.2;
+                    }
+                    else {
+                        TotalPrice += Math.ceil(HighWay / 1000 * 1.2) + 85;
+                    }
+
+                    var cell = document.createElement("td");
+                    cell.innerText = (Math.ceil(TotalPrice)).toFixed(2) + "元";
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = Math.ceil(HighWay / 1000 * 1.2) + "元";
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = ((NormalRoad + HighWay) / 1000).toFixed(2);
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = (TotalTimes / 60).toFixed(2) + "分";
+                    row.appendChild(cell);
+
+                    table.appendChild(row);
+                    directionsDisplay.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+
+
+        var CaculateDirectionCar = function (point1, point2, travelMode) {
+            directionsService.route({
+                origin: point1,
+                destination: point2,
+                travelMode: travelMode
+            }, function (response, status) {
+                if (status === 'OK') {
+                    console.log(response);
+                    var row = document.createElement("tr");
+                    var cell = document.createElement("td");
+                    cell.innerText = '自行開車';
+                    row.appendChild(cell);
+                    var steps = response.routes[0].legs[0].steps;
+                    var NormalRoad = 0;
+                    var HighWay = 0;
+                    var TotalTimes = 0;
+                    steps.forEach(item => {
+                        var string1 = item.instructions;
+                        if (string1.indexOf('收費路段') != -1) {
+                            //console.log(item.instructions);
+                            HighWay += item.distance.value;
+                        }
+                        else {
+                            NormalRoad += item.distance.value;
+                        }
+                        TotalTimes += item.duration.value;
+
+                    });
+                    TotalTimes = TotalTimes / 60;
+                    NormalRoad = NormalRoad / 1000;
+                    HighWay = HighWay / 1000;
+
+                    var cell = document.createElement("td");
+                    var Kilometer = ((NormalRoad * 5) + (HighWay * 6.2)).toFixed(2) + "元";
+                    cell.innerText = Kilometer;
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = Math.ceil(HighWay * 1.2) + "元";
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = (NormalRoad + HighWay).toFixed(2);
+                    row.appendChild(cell);
+
+                    var cell = document.createElement("td");
+                    cell.innerText = TotalTimes.toFixed(2) + "分";
+                    row.appendChild(cell);
+
+                    table.appendChild(row);
+                    directionsDisplay.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+
+
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCA1egjnZ4jyrp0iSZ2RsyYM3z4d6P6R7U&callback=initMap" async
+        defer></script>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
