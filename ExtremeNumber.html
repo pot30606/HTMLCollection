@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+
+    <style>
+        .row {
+            margin: 0 auto;
+        }
+
+        .margin {
+            margin: 15px;
+            width: 90px;
+            height: 90px;
+            font-size: 30px;
+            background-color: rgb(29, 24, 48);
+            border: solid 2px #ffffff;
+            color: white;
+            border-radius: 50px;
+        }
+
+        .enter {
+            margin: 20px;
+            width: 90px;
+            height: 90px;
+            font-size: 30px;
+            background-color: rgb(29, 24, 48);
+            border: solid 2px #00ca0a;
+            color: white;
+            border-radius: 50px;
+        }
+
+        .back {
+            margin: 20px;
+            width: 90px;
+            height: 90px;
+            font-size: 30px;
+            background-color: rgb(29, 24, 48);
+            border: solid 2px #e71313;
+            color: white;
+            border-radius: 50px;
+        }
+
+        .titletext {
+            font-size: 30px;
+
+        }
+    </style>
+</head>
+
+<body style="font-family:Microsoft Jhenghei ; background-color:#000000;">
+    <div style="text-align:center;width:100%;height:100%;">
+        <div class="" style="width:30%;height:70%;margin:0 auto;text-align:center;">
+            <div style="width:100%;height:60px; margin-top:30px;color:#ffffff;">
+                <h1>終極密碼</h1>
+            </div>
+            <div id="Hint" style="width:100%;height:30px;text-align:center;margin-top:10px;color:#ffffff;">
+                <h2>0~100</h2>
+            </div>
+            <div class="form-group">
+                <input type="text" style="margin-top:60px;" class="form-control" name="" id="InputValue" aria-describedby="helpId" placeholder="">
+            </div>
+
+            <div class="">
+                <div>
+                    <button type="button " class="btn btn-info margin">7</button>
+                    <button type="button " class="btn btn-info margin ">8</button>
+                    <button type="button " class="btn btn-info margin ">9</button>
+                </div>
+            </div>
+            <div class="">
+                <div>
+                    <button type="button " class="btn btn-info margin ">4</button>
+                    <button type="button " class="btn btn-info margin ">5</button>
+                    <button type="button " class="btn btn-info margin ">6</button>
+                </div>
+            </div>
+            <div class="">
+                <div>
+                    <button type="button " class="btn btn-info margin ">1</button>
+                    <button type="button " class="btn btn-info margin ">2</button>
+                    <button type="button " class="btn btn-info margin ">3</button>
+                </div>
+            </div>
+            <div class="">
+                <div>
+                    <a name="" id="Back" class="btn btn-info back" href="#" role="button">
+                        <img src="image\back.png" alt="" style="width:70px;height:70px;">
+                    </a>
+                    <button type="button " class="btn btn-info margin ">0</button>
+                    <a name="" id="GuessNumber" class="btn btn-info enter" href="#" role="button">
+                        <img src="image\check-mark.png" alt="" style="width:70px;height:70px;">
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class=""></div>
+    </div>
+
+
+
+    <script>
+
+        var result = Math.floor(Math.random() * 100);
+        var small = 0;
+        var big = 100;;
+        var times = 0;
+
+        var Hint = document.getElementById("Hint");
+        var InputValue = document.getElementById("InputValue");
+        var GuessNumber = document.getElementById("GuessNumber");
+        var Back = document.getElementById("Back");
+
+
+
+
+
+
+        GuessNumber.onclick = function () {
+            var n = InputValue.value;
+            InputValue.value = "";
+
+            console.log("times =" + times);
+            if (times <= 5) {
+                if (result == n) {
+                    var TextCorrect = "你猜對了!!<br/>你總共猜了" + times + "次";
+                    Hint.innerHTML = TextCorrect;
+                }
+                else if (n > result) {
+                    times += 1;
+                    if (n < big) {
+                        big = n;
+                    }
+                    var TextSmaller = "再猜小一點,你總共猜了" + times + "次<br/>在" + small + "和" + big + "之間";
+                    Hint.innerHTML = TextSmaller;
+                }
+                else if (n < result) {
+                    if (n > small) {
+                        small = n;
+                    }
+                    times += 1;
+                    var TextBigger = "再猜大一點,你總共猜了" + times + "次<br/>在" + small + "和" + big + "之間";
+                    Hint.innerHTML = TextBigger;
+                }
+            }
+            if (times >= 5) {
+                alert("你超過5次了 失敗!!");
+            }
+        }
+
+        var Back = document.getElementById("Back");
+        Back.onclick = function () {
+            var stringmin = InputValue.value.slice(0, -1);
+            InputValue.value = stringmin;
+        }
+
+        var buttons = document.getElementsByTagName("button");
+        for (var i = 0; i <= buttons.length; i++) {
+            var button = buttons[i];
+            button.onclick = function () {
+                var btn = event.srcElement;
+                document.getElementById("InputValue").value += btn.innerText;
+            }
+        }
+
+    </script>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js " integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN "
+        crossorigin="anonymous "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js " integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q "
+        crossorigin="anonymous "></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js " integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl "
+        crossorigin="anonymous "></script>
+</body>
+
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>累進稅率</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js" integrity="sha384-8iPTk2s/jMVj81dnzb/iFR2sdA7u06vHJyyLlAd4snFpCl/SnyUjRrbdJsw1pGIl"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+
+
+    <div class="container">
+        <div class="row mt-5">
+            <div class="col-9 text-center">
+                <h3>稅額試算</h3>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="txtNetIncome" class="col-2 col-form-label text-right">所得淨額</label>
+            <div class="input-group col-6">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <input type="text" class="form-control" id="txtNetIncome" />
+            </div>
+            <div class="col-1">
+                <button id="Cacluate" class="btn btn-primary">
+                    <i class="fas fa-calculator"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="txtTaxRate" class="col-3 col-form-label text-right">稅率</label>
+        <div class="input-group col-5">
+            <input type="text" class="form-control" readonly maxlength="5" id="txtTaxRate" />
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <i class="fas fa-percent"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div class="form-group row">
+        <label for="txtTaxAdjustment" class="col-3 col-form-label text-right">累進差額</label>
+        <div class="input-group col-5">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+            <input type="text" class="form-control" readonly id="txtTaxAdjustment" />
+        </div>
+    </div>
+    </div>
+    <div class="form-group row">
+        <label for="txtTaxAmount" class="col-3 col-form-label text-right">應納稅額</label>
+        <div class="input-group col-5">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+            <input type="text" class="form-control" readonly id="txtTaxAmount" />
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+
+        var Moneys = {
+            rate: 0,
+            Difference: 0,
+        };
+
+        $(function () {
+
+
+            $("#Cacluate").click(function () {
+
+                var incomeText = $("#txtNetIncome").val();
+                var income = parseInt(incomeText);
+                if (isNaN(parseInt(income))) {
+                    alert("你輸入的:", incomeText, "不是數字");
+                    return;
+                }
+                console.log("income", income);
+
+                CaculateTax(income);
+                console.log(Moneys);
+
+                $("#txtTaxRate").val(Moneys.rate);
+                $("#txtTaxAdjustment").val(Moneys.Difference);
+            });
+        })
+
+        var CaculateTax = function (x) {
+            if (x <= 540000) {
+                Moneys.rate = 0.05;
+                Moneys.Difference = 0;
+                return Moneys;
+            }
+            if (540001 <= x && x <= 1210000) {
+                Moneys.rate = 0.12;
+                Moneys.Difference = 37800;
+                return Moneys;
+            }
+            if (1210001 <= x && x <= 2420000) {
+                Moneys.rate = 0.2;
+                Moneys.Difference = 134600;
+                return Moneys;
+            }
+            if (2420001 <= x && x <= 4530000) {
+                Moneys.rate = 0.3;
+                Moneys.Difference = 376600;
+                return Moneys;
+            }
+            if (4530001 <= x && x <= 10310000) {
+                Moneys.rate = 0.4;
+                Moneys.Difference = 829600;
+                return Moneys;
+            }
+            if (10310001 <= x) {
+                Moneys.rate = 0.45;
+                Moneys.Difference = 1345100;
+                return Moneys;
+            }
+
+        }
+        var CaculateAdj = function (income, CaculateTax) {
+
+        }
+
+
+    </script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

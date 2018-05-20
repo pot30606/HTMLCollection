@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <style>
+        .nowMonth {
+            width: 80%;
+        }
+
+        .side {
+            width: 10%;
+        }
+
+        .full {
+            position: absolute;
+            top: 20%;
+            width: 100%;
+            height: 100%;
+        }
+
+        .calendartitle {
+            width: 100%;
+            height: 90px;
+        }
+
+        .Textmid {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modelTitleId">行事曆事項</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <label id="lb_date"></label>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="">主題(subject)</label>
+                            <input type="text" class="form-control" name="" id="subject" aria-describedby="helpId" placeholder="">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="">開始時間</label>
+                            <input type="text" class="form-control" name="" id="fromHR" aria-describedby="helpId" placeholder="">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="">結束時間</label>
+                            <input type="text" class="form-control" name="" id="toHR" aria-describedby="helpId" placeholder="">
+                        </div>
+                    </div>
+                    <div class="row">
+                        color
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="colse_it" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save_things">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="full">
+        <div class="btn-group calendartitle" role="group" aria-label="Basic example">
+            <button id="BeforeMonth" type="button" class="btn btn-secondary side">
+                <</button>
+                    <button id="CurrentlyMonth" type="button" class="btn btn-secondary nowMonth"></button>
+                    <button id="NextMonth" type="button" class="btn btn-secondary side">></button>
+        </div>
+        <table id="mytable" class="table table-bordered">
+            <tr>
+                <th class="Textmid" style="color:#FF0000">Sun</th>
+                <th class="Textmid">Mon</th>
+                <th class="Textmid">Tue</th>
+                <th class="Textmid">Wed</th>
+                <th class="Textmid">Thu</th>
+                <th class="Textmid">Fri</th>
+                <th class="Textmid" style="color:#00DD00">Sat</th>
+            </tr>
+        </table>
+
+    </div>
+
+    <script>
+        var CurrentlyMonth = document.getElementById("CurrentlyMonth");
+        var NextMonth = document.getElementById("NextMonth");
+        var BeforeMonth = document.getElementById("BeforeMonth");
+        var monthDays = new Array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+        var monthsName = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+        var date = new Date();
+        var nowMonth = date.getMonth();
+        var nowDay = date.getDay();
+        var nowDate = date.getDate();
+        var allYear = date.getFullYear();
+        var addMonth = 0;
+        var test = new Date(date.getFullYear(), date.getMonth(), date.getDay(), date.getDate());
+        var tdsrc;
+        /*alert(test);
+        var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);//當月的第一天
+        var lastDay = new Date(date.getFullYear(), date.getMonth(), 0);
+        alert(firstDay.getDate() + "_ _ _ _ _ _ __ _ " + lastDay);*/
+
+
+
+        window.onload = function () {
+            nowMonth = date.getMonth();
+            nowDay = date.getDay();
+            nowDate = date.getDate();
+            allYear = date.getFullYear();
+            if (((allYear % 4 == 0) && (allYear % 100 != 0)) || (allYear % 400 == 0)) {
+                //閏年2/29
+                monthDays[1] = 29;
+            }
+            GetMonthCalendar(allYear, nowMonth, nowDay, nowDate);
+            if (window.sessionStorage["JSON_monthlySchedual"] !== undefined) {
+                GetMonthCalendarItems();
+            }
+        };
+        //讀取暫存
+        var GetMonthCalendarItems = function () {
+            var items_year = JSON_monthlySchedual_obj.year;
+            var items_month = JSON_monthlySchedual_obj.month;
+            var items_days = JSON_monthlySchedual_obj.days;
+            items_days.forEach(item => {
+                console.log("幾號:" + item.day);
+                item.items.forEach(element => {   //f取得item 事項裡的值
+                    CreateSchedualItem(element.key, element.subject, element.fromHR, element.toHR);
+                });
+            });
+
+            console.log("GetMonthCalendarItems : ", items_year, items_month, items_days);
+
+        };
+
+        var JSON_monthlySchedual_obj;
+        var monthlySchedual;
+
+        if (window.sessionStorage["JSON_monthlySchedual"] === undefined) {
+            monthlySchedual = {
+                year: allYear,
+                month: nowMonth,
+                days: [
+                ]
+            };
+            var JSON_monthlySchedual = JSON.stringify(monthlySchedual);
+            JSON_monthlySchedual_obj = JSON.parse(JSON_monthlySchedual);
+            window.sessionStorage["JSON_monthlySchedual"] = JSON.stringify(monthlySchedual);
+        } else {
+            console.log("sessionStorage 有東西 : ");
+            JSON_monthlySchedual_obj = JSON.parse(window.sessionStorage["JSON_monthlySchedual"]);
+        }
+
+        console.log(JSON_monthlySchedual_obj);
+
+
+        var JSON_dailySchedual;
+        var JSON_dailySchedual_obj;
+        var JSON_schedualeItem;
+        var JSON_schedualeItem_obj;
+
+        var dailySchedual = {
+            day: "",
+            tdsrc: "",
+            items: [
+            ]
+        };
+
+
+        var colse_it = document.getElementById("colse_it");
+        colse_it.onclick = function () {
+            $('#modelId').modal('hide');
+        }
+
+
+        //modal中的儲存
+        var save_things = document.getElementById("save_things");
+        save_things.onclick = function () {
+            var lb_date = document.getElementById("lb_date");
+            var lb_date_text = lb_date.innerText;
+            var subject = document.getElementById("subject");
+            var subject_text = subject.value;
+            var fromHR = document.getElementById("fromHR");
+            var fromHR_text = fromHR.value;
+            var toHR = document.getElementById("toHR");
+            var toHR_text = toHR.value;
+            var key_num = tdsrc.id; //key   element.key
+            var schedualeItem = {
+                key: key_num, //鑑值
+                fromHR: fromHR_text, //開始
+                toHR: toHR_text, //結束
+                subject: subject_text, //主題
+                color: "",
+            };
+            console.log("save_things 按下儲存", schedualeItem);
+            JSON_schedualeItem = JSON.stringify(schedualeItem);
+            JSON_schedualeItem_obj = JSON.parse(JSON_schedualeItem);
+            JSON_dailySchedual_obj.items.push(JSON_schedualeItem_obj);
+            JSON_monthlySchedual_obj.days.push(JSON_dailySchedual_obj);
+
+            console.log("JSON_monthlySchedual_obj:");
+            console.log(JSON_monthlySchedual_obj);
+            window.sessionStorage["JSON_monthlySchedual"] = JSON.stringify(JSON_monthlySchedual_obj);
+            CreateSchedualItem(key_num, subject_text, fromHR_text, toHR_text);
+            $('#modelId').modal('hide');
+        }
+
+
+        var CreateSchedualItem = function (key_num, subject_text, fromHR_text, toHR_text) {
+            console.log("key_num td的ID:" + key_num);
+            var TDID_key_num = document.getElementById(key_num);
+            TDID_key_num.innerHTML += "<br/>" + subject_text + " " + fromHR_text + "~" + toHR_text;
+            console.log("CreateSchedualItem");
+        }
+
+
+        NextMonth.onclick = function () {
+            remove_data();
+            addMonth += 1;
+            var NextMonthCalendar = new Date(date.getFullYear(), date.getMonth() + addMonth, 1);//當月的第一天
+            nowDate = NextMonthCalendar.getDate();
+            nowDay = NextMonthCalendar.getDay();
+            nowMonth = NextMonthCalendar.getMonth();
+            allYear = NextMonthCalendar.getFullYear();
+            if (((allYear % 4 == 0) && (allYear % 100 != 0)) || (allYear % 400 == 0)) {
+                //閏年2/29
+                monthDays[1] = 29;
+            }
+            GetMonthCalendar(allYear, nowMonth, nowDay, nowDate);
+        }
+
+
+        BeforeMonth.onclick = function () {
+            remove_data();
+            addMonth -= 1;
+            var NextMonthCalendar = new Date(date.getFullYear(), date.getMonth() + addMonth, 1);//當月的第一天
+            nowDate = NextMonthCalendar.getDate();
+            nowDay = NextMonthCalendar.getDay();
+            nowMonth = NextMonthCalendar.getMonth();
+            allYear = NextMonthCalendar.getFullYear();
+            if (((allYear % 4 == 0) && (allYear % 100 != 0)) || (allYear % 400 == 0)) {
+                //閏年2/29
+                monthDays[1] = 29;
+            }
+            GetMonthCalendar(allYear, nowMonth, nowDay, nowDate);
+        }
+
+
+
+
+        var GetMonthCalendar = function (allYear, nowMonth, nowDay, nowDate) {
+            CurrentlyMonth.innerHTML = "<h2>" + allYear + "<br/>" + monthsName[nowMonth] + "</h2>";
+            var nowMinus = (nowDate - 1) % 7;
+            //alert("今天與1號相差幾星期:" + nowMinus);
+            var FirstDayofWeek = nowDay - ((nowDate - 1) % 7);
+            if (FirstDayofWeek < 0) {
+                FirstDayofWeek = 7 + FirstDayofWeek;
+            }
+            //alert("今天星期" + nowDay + " - ((今天幾號" + nowDate + " - 1) % 7) = " + FirstDayofWeek);
+            var table = document.querySelector("table");
+            var day = 1;
+            var nextmonthday = 1;
+            var n = (monthDays[nowMonth - 1]) - FirstDayofWeek + 1;
+            for (var i = 1; i <= 6; i++) {
+                var row = document.createElement("tr");
+                for (var j = 1; j <= 7; j++) {
+                    var cell = document.createElement("td");
+
+                    if (j <= FirstDayofWeek && i == 1) { //上個月底的日期
+                        cell.innerHTML = "<a style=\"color:gray;\">" + n + "</a>";
+
+                        cell.id = allYear.toString() + (nowMonth - 1).toString() + n.toString() + dailySchedual.items.length.toString();
+                        n = n + 1;
+                    }
+                    else {
+
+                        if (day > monthDays[nowMonth]) { //下個月初的日期
+                            cell.innerHTML = "<a style=\"color:gray;\">" + nextmonthday + "</a>";
+                            cell.id = allYear.toString() + (nowMonth + 1).toString() + nextmonthday.toString() + dailySchedual.items.length.toString();
+                            nextmonthday += 1;
+                            i++; //下個月初日期超過當月星期六時減一行
+                        }
+                        else {
+                            cell.id = allYear.toString() + nowMonth.toString() + day.toString() + dailySchedual.items.length.toString();
+                            if (j == 1) { //星期日
+                                cell.innerHTML = "<a style=\"color:#FF0000\">" + day + "</a>";
+                            }
+                            else if (j == 7) {//星期六
+                                cell.innerHTML = "<a style=\"color:#00DD00\">" + day + "</a>";
+                            }
+                            else {
+                                cell.innerText = day; //正常日期
+                            }
+                            cell.height = 100;
+                            cell.width = 100;
+                            day = day + 1;
+
+                            if (day == monthDays[nowMonth]) {
+                                i++; //下個月初日期超過當月星期六時減一行
+                            }
+                        }
+                    }
+                    console.log("建立時候的cell.id :", cell.id);
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+            CreateTDSelector();
+        }
+
+        var CreateTDSelector = function () {
+            var tds = document.getElementsByTagName("td");
+            for (var i = 0; i < tds.length; i++) {
+                var td = tds[i];
+                td.onclick = function () {
+                    tdsrc = event.srcElement;
+                    console.log("td = event.srcElement" + tdsrc.id);
+                    var n = tdsrc.innerText;
+                    dailySchedual = {
+                        day: n,
+                        items: [
+                        ]
+                    };
+                    JSON_dailySchedual = JSON.stringify(dailySchedual);
+                    JSON_dailySchedual_obj = JSON.parse(JSON_dailySchedual);
+    
+
+                    // console.log("JSON_dailySchedual_obj");
+                    // console.log(JSON_dailySchedual_obj);
+
+                    //////JSON_monthlySchedual_obj.days.push(JSON_dailySchedual_obj);
+                    //console.log("JSON_monthlySchedual_obj.days += JSON_dailySchedual_obj");
+                    // console.log(JSON_monthlySchedual_obj);
+                    //console.log(JSON_monthlySchedual_obj.days);
+                    //console.log("Click" + n);
+
+                    var lb_date = document.getElementById("lb_date");
+                    lb_date.innerText = n;
+                    $('#modelId').modal('show');
+                }
+            }
+        }
+
+
+
+        var remove_data = function () {
+            var mytable = document.getElementById("mytable");
+            //先取得目前的row數
+            var num = mytable.rows.length;
+            //防止把標題跟原本的第一個刪除
+            for (var i = 2; i <= num; i++) {
+                //刪除最後一個
+                mytable.deleteRow(1);
+            }
+        }
+
+
+    </script>
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>
