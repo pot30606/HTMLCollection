@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+
+    <style>
+        body {
+            background-image: url("images/bg_dirt.png");
+            z-index: -500;
+        }
+
+        div.mole {
+            line-height: 120px;
+            text-align: center;
+            position: relative;
+            width: 120px;
+            height: 120px;
+            background-image: url("images/grass_upper.png");
+            background-repeat: no-repeat;
+            background-size: 120px 60px;
+            background-position: top 0;
+
+        }
+
+        div.mole::before {
+            content: "";
+            width: 80px;
+            height: 80px;
+            background-image: url("images/mole_1.png");
+            background-repeat: no-repeat;
+            background-size: 80px 80px;
+            background-position: top 0;
+            position: absolute;
+            top: 40px;
+            left: 20px;
+            transition: all 1s;
+        }
+
+        .mole.active::before {
+            background-image: url("images/mole_1.png");
+            top: 0;
+            transition: all .3s;
+        }
+
+        .mole.hit::before {
+            background-image: url("images/mole_thump4.png");
+            top: 40px;
+            transition: all .5s;
+        }
+
+        div.mole::after {
+            position: absolute;
+            width: 120px;
+            height: 60px;
+            content: "";
+            background-image: url("images/grass_lower.png");
+            background-repeat: no-repeat;
+            background-size: 120px 60px;
+            background-position: top 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        div.top {
+            float: left;
+        }
+
+        .progress {
+            position: inherit;
+            width: 600px;
+        }
+
+        #MyLife {
+            width: 100%;
+        }
+
+        .gradecss {
+            color: floralwhite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top">
+        <a name="" id="start" class="btn btn-info" href="#" role="button">開始遊戲</a>
+        <a name="" id="stop" class="btn btn-info" href="#" role="button">暫停</a>
+        </br>
+        <div class="form-group">
+            <label for="">選擇難度</label>
+            <select class="form-control" name="" id="SelectMode">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+            </select>
+        </div>
+    </div>
+
+    <center>
+
+        <div class="progress">
+            <div id="MyLife" class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="80" aria-valuemin="0"
+                aria-valuemax="100">
+                life
+            </div>
+        </div>
+        <table id="play-table"></table>
+        <label id="grade" class="gradecss"></label>
+        <label class="gradecss">分</label>
+
+    </center>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script>
+        var table = document.getElementById("play-table");
+        var start = document.getElementById("start");
+        var lb_grade = document.getElementById("grade");
+        var SelectMode = document.getElementById("SelectMode");
+        var n = 2; //幾x幾
+        var grade = 0;
+        var life = 80;
+        var CreateTable = function () {
+            for (var i = 0; i <= n; i++) {
+                var tr = document.createElement("tr");
+                for (var j = 0; j <= n; j++) {
+                    var td = document.createElement("td");
+                    td.innerHTML = "<div class=\"mole\">" + "</div>";
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+        };
+
+        $(function () {
+            //建立表格
+            CreateTable = function () {
+                for (var i = 0; i <= n; i++) {
+                    var tr = document.createElement("tr");
+                    for (var j = 0; j <= n; j++) {
+                        var td = document.createElement("td");
+                        td.innerHTML = "<div class=\"mole\">" + "</div>";
+                        tr.appendChild(td);
+                    }
+                    table.appendChild(tr);
+                }
+            }
+
+
+            start.onclick = function () {
+                n = parseInt(SelectMode.value) + 1;
+                console.log(n);
+                GameStart();
+            }
+        });
+
+
+
+
+        //開始遊戲
+        var GameStart = function () {
+            CreateTable();
+            RandomMole();
+
+        }
+
+        //隨機跳出老鼠可以打
+        var RandomMole = function () {
+            LifeCount(life);
+            var per = Math.round((life / 80) * 100);
+            $("#MyLife").css("width", per + "%");
+            console.log("per", per, "life", life);
+            var rnd = Math.floor(Math.random() * ((n + 1) * (n + 1)));
+            var $mole = $('div.mole');
+            $mole[rnd].className = "mole active";
+            //hitWrongmole($mole);
+            hitmole($mole[rnd]);
+            Remove($mole[rnd]);
+            if (life > 0) {
+                setTimeout(RandomMole, 500);
+            }
+
+        }
+
+        //時間到後縮回
+        var Remove = function (timeup) {
+            setTimeout(function () { timeup.className = "mole" }, 1000);
+        }
+
+        //跳起來的老鼠,被打後縮回
+        var hitmole = function (x) {
+            $(x).on('click', function () {
+                console.log("life is ", life);
+                if (x.className == "mole active") {
+                    grade++;
+                    x.className = "mole";
+                    lb_grade.innerText = grade;
+                    console.log(grade);
+                    life = life + 2;
+                }
+            });
+            --life;
+            if (life > 80) {
+                life = 80;
+            }
+            LifeCount(life);
+        }
+
+
+
+        var LifeCount = function (life) {
+            var per = Math.round((life / 80) * 100);
+            $("#MyLife").css("width", per + "%");
+            $("#MyLife").text("HP:" + life);
+            if (life <= 0) {
+                alert("遊戲結束!");
+            }
+        }
+
+
+    </script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
